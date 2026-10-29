@@ -1,0 +1,80 @@
+# Bitwarden / Vaultwarden: passwords kept safe. Hisho keeps every login it makes or is given (a new machine's
+# admin password, a service account) in your own password vault, where your Bitwarden apps (phone, browser,
+# computer) show it, instead of only in its own secrets.
+# Hisho has its own account on the vault and an organization "Hisho" with the collection "Hisho logins"; your
+# account is invited to it and confirmed, so you see everything Hisho saves there. Items are encrypted on Hisho's
+# side (Bitwarden's own encryption); the server never sees a password.
+# The vault: Vaultwarden (a small Bitwarden-compatible server) that Install in Hisho runs on the Core machine,
+# tailnet only, or your Bitwarden cloud account (Hisho then needs a second free account of its own).
+name: vaultwarden
+kind: integration
+title: Bitwarden / Vaultwarden
+description: Passwords kept safe. Every login Hisho makes goes into your own Bitwarden vault, in a Hisho logins collection your apps show.
+version: 0.1.0
+you_need:
+  - "A Bitwarden account of your own (Hisho can run the vault for you: Vaultwarden on the Core machine)"
+  - "The Bitwarden app on your phone, browser or computer, to see the logins"
+provider: provider.py
+# Other parts of Hisho hand logins to this add-on: save_login(login, ctx) in provider.py.
+login_store: true
+# Install in Hisho: Vaultwarden itself, when there is none (Hisho's install, pinned image, tailnet only)
+companion:
+  title: Vaultwarden
+  install: companion/install.sh
+  uninstall: companion/uninstall.sh
+  data_dir: ~/vaultwarden
+  ports: {http: 8222}
+  health: {http: "http://127.0.0.1:8222/alive", expect: 200, timeout: 180}
+  detect: {containers: [vaultwarden], http: ["http://127.0.0.1:8222/alive"], entry: url}
+  entry: {url: "https://{core_dns}:5443", data_dir: ~/vaultwarden}
+  requires: [docker, tailscale]
+entry_label: Password vault
+secret_rotate: "Hisho's own master password: sign in to the vault as Hisho's account > Account settings > Security > Master password, then update its secret"
+entry_schema:
+  url: url                      # the vault's web address; Bitwarden cloud: https://vault.bitwarden.com or .eu
+  owner_email: "str?"           # your own account's email (Hisho invites it)
+  hisho_email: "str?"           # Hisho's own account (default hisho@<Core machine>.local on Vaultwarden)
+  hisho_password: "password?"   # Hisho's own master password (made by Hisho on Vaultwarden; a secret)
+  hisho_client_id: "str?"       # Bitwarden cloud: Hisho's account's API key, client_id (user.…)
+  hisho_client_secret: "password?"  # Bitwarden cloud: that API key's client_secret
+  admin_token: "password?"      # Vaultwarden's admin page token (from the install; a secret)
+  org_id: "str?"                # the Hisho organization (filled by Hisho)
+  collection_id: "str?"         # its Hisho logins collection (filled by Hisho)
+  data_dir: "str?"              # where Vaultwarden keeps its data on the Core machine (Hisho's install)
+  container: "str?"             # its Docker container (Hisho's install: vaultwarden)
+  note: "str?"
+entry_form:
+  url: "Vault address (https://...)"
+  owner_email: "Your account's email"
+  hisho_email: "Hisho's account email (Bitwarden cloud)"
+  hisho_password: "Hisho's master password (Bitwarden cloud)"
+  hisho_client_id: "Hisho's API key client_id (Bitwarden cloud)"
+  hisho_client_secret: "Hisho's API key client_secret (Bitwarden cloud)"
+  note: "Note"
+
+# Plain words for each field of the entry form (shown on the dashboard).
+help:
+  url:
+    label: Vault address
+    say: "The web address of your password vault. Filled in for you when Hisho installed Vaultwarden. If you use Bitwarden cloud, type https://vault.bitwarden.com (US) or https://vault.bitwarden.eu (EU)."
+  owner_email:
+    label: Your account's email
+    say: "The email you sign in to your own Bitwarden account with. Hisho invites that account to its Hisho logins collection, then confirms it. Easier: press Invite me on the page."
+  hisho_email:
+    label: Hisho's account email (Bitwarden cloud only)
+    say: "Only for Bitwarden cloud: the email of a second free Bitwarden account you made for Hisho (an address of yours that can get mail, like you+hisho@example.com). On Vaultwarden leave it empty: Hisho makes its own account."
+    get: "https://vault.bitwarden.com/#/signup"
+    get_label: Make Hisho's account at bitwarden.com
+  hisho_password:
+    label: Hisho's master password (Bitwarden cloud only)
+    say: "Only for Bitwarden cloud: the master password you gave Hisho's account. Use a long new one, kept only here. On Vaultwarden leave it empty: Hisho makes one."
+  hisho_client_id:
+    label: Hisho's API key client_id (Bitwarden cloud only)
+    say: "Only for Bitwarden cloud: signed in as Hisho's account, Account settings > Security > Keys > View API key. It starts with user. so Hisho can sign in without a captcha or a new-device email."
+    get: "https://vault.bitwarden.com/#/settings/security/security-keys"
+    get_label: Hisho's API key at bitwarden.com
+  hisho_client_secret:
+    label: Hisho's API key client_secret (Bitwarden cloud only)
+    say: "Only for Bitwarden cloud: the client_secret shown with that API key."
+  note:
+    say: "Anything you want to remember about this vault. Shown on its card."
