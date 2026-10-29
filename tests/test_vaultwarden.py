@@ -263,7 +263,7 @@ def test_save_login_with_cores_login_shape_keeps_one_item_per_key(addon, prov, t
     installed(addon, tmp_path)
     ctx = Ctx(addon)
     prov.setup("main", addons.entries(addon)["main"], ctx)
-    base = {"name": "login", "machine": "souko", "username": "jonathan", "note": "What: test"}
+    base = {"name": "login", "machine": "souko", "username": "owner", "note": "What: test"}
     sem = prov.save_login({**base, "key": "HISHO_SEMAPHORE_SOUKO_LOGIN", "service": "semaphore", "title": "Semaphore",
                            "password": "s1"}, ctx)
     fj = prov.save_login({**base, "key": "HISHO_FORGEJO_SOUKO_LOGIN", "service": "forgejo", "title": "Forgejo",

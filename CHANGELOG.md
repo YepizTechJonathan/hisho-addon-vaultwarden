@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Logins are matched by Hisho's stable key, so each service keeps its own item ("Semaphore (souko)", "Infisical encryption key (souko)").
+
 ## 0.1.0
 
 - First version: passwords kept safe. Install in Hisho runs Vaultwarden on the Core machine (pinned image, tailnet

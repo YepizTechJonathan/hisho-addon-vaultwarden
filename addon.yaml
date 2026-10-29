@@ -10,7 +10,7 @@ name: vaultwarden
 kind: integration
 title: Bitwarden / Vaultwarden
 description: Passwords kept safe. Every login Hisho makes goes into your own Bitwarden vault, in a Hisho logins collection your apps show.
-version: 0.1.0
+version: 0.1.1
 you_need:
   - "A Bitwarden account of your own (Hisho can run the vault for you: Vaultwarden on the Core machine)"
   - "The Bitwarden app on your phone, browser or computer, to see the logins"
