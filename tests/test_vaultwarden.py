@@ -20,6 +20,7 @@ class Server:
         self.accounts = {}      # email -> {password, user_id}
         self.orgs = {}          # id -> {name, members: [...], collections: {id: name}}
         self.items = {}         # id -> item
+        self.trashed = {}       # id -> item moved to the trash
         self.signups = True
         self.up = True
         self.ids = (f"id-{n}" for n in itertools.count(1))
@@ -103,6 +104,9 @@ def fake_vault(server, bw):
             item_id = item_id or next(server.ids)
             server.items[item_id] = {**item, "id": item_id, "org": org, "collections": [col], "revision": "r"}
             return item_id
+
+        def trash(self, item_id):
+            server.trashed[item_id] = server.items.pop(item_id)
     return FakeVault
 
 
@@ -277,6 +281,24 @@ def test_save_login_with_cores_login_shape_keeps_one_item_per_key(addon, prov, t
                              "password": "s2"}, ctx)
     assert again["id"] == sem["id"] and prov.server.items[sem["id"]]["password"] == "s2"
     assert prov.server.items[sem["id"]]["fields"]["Hisho key"] == "HISHO_SEMAPHORE_SOUKO_LOGIN"
+
+def test_forget_login_moves_only_its_own_item_to_the_trash(addon, prov, tmp_path):
+    """Remove an add-on in Hisho (SIB-043): its login leaves the vault too, to the trash, found by its Hisho key."""
+    from hisho import addons
+    installed(addon, tmp_path)
+    ctx = Ctx(addon)
+    prov.setup("main", addons.entries(addon)["main"], ctx)
+    base = {"name": "login", "machine": "souko", "username": "owner", "note": "What: test"}
+    sem = prov.save_login({**base, "key": "HISHO_SEMAPHORE_SOUKO_LOGIN", "service": "semaphore", "title": "Semaphore",
+                           "password": "s1"}, ctx)
+    fj = prov.save_login({**base, "key": "HISHO_FORGEJO_SOUKO_LOGIN", "service": "forgejo", "title": "Forgejo",
+                          "password": "f1"}, ctx)
+    out = prov.forget_login({"key": "HISHO_SEMAPHORE_SOUKO_LOGIN"}, ctx)
+    assert out["ok"] and "Semaphore (souko)" in out["message"] and "s1" not in str(out)
+    assert sem["id"] in prov.server.trashed and fj["id"] in prov.server.items
+    assert prov.forget_login({"key": "HISHO_SEMAPHORE_SOUKO_LOGIN"}, ctx) == {"ok": True,
+                                                                              "message": "it wasn't in your vault"}
+
 
 def test_save_login_says_why_when_it_cant_and_never_shows_the_password(addon, prov, tmp_path):
     from hisho import addons

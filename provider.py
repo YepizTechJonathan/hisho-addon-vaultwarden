@@ -407,6 +407,32 @@ def save_login(login: dict[str, Any], ctx: Any) -> dict[str, Any]:
             "message": f"{'Updated' if updated else 'Saved'} {name} in your vault (collection {COLLECTION})"}
 
 
+def forget_login(login: dict[str, Any], ctx: Any) -> dict[str, Any]:
+    """Hisho forgot this login (Remove an add-on, SIB-043): its item goes to the vault's trash, found by its Hisho key
+    (only items Hisho made). Restorable from the trash; nothing found is fine."""
+    key = str((login or {}).get("key") or "").strip()
+    if not key:
+        return {"ok": False, "message": "a login to forget needs its key"}
+    picked = _pick(_entries(ctx))
+    if picked is None:
+        return {"ok": False, "message": "Your password vault isn't set up here: delete the item there yourself"}
+    ename, entry = picked
+    org = str(entry["org_id"])
+
+    def go(v: Any) -> list[str]:
+        mine = [i for i in v.org_items(org) if i["fields"].get(MADE_BY[0]) == MADE_BY[1]
+                and i["fields"].get(KEY_FIELD) == key]
+        for i in mine:
+            v.trash(i["id"])
+        return [i["name"] for i in mine]
+    try:
+        gone = _with_session(entry, ctx, go)
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "message": f"Hisho couldn't take it out of your vault: {type(exc).__name__}: {str(exc)[:200]}"}
+    _journal("vaultwarden-login-trashed", {"entry": ename, "key": key, "items": len(gone)})
+    return {"ok": True, "message": f"moved {', '.join(gone)} to your vault's trash" if gone else "it wasn't in your vault"}
+
+
 # ── what the page shows ──────────────────────────────────────────────────
 
 def _image(entry: dict[str, Any], ctx: Any) -> str:

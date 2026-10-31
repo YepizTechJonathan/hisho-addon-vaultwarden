@@ -529,6 +529,11 @@ class Vault:
         return str((_lower(data or {})).get("id") or item_id or "")
 
 
+    def trash(self, item_id: str) -> None:
+        """Move an item to the vault's trash (the owner can restore it there; never a permanent delete)."""
+        self.call("PUT", f"{self.api}/ciphers/{item_id}/delete")
+
+
 def _lower(data: Any) -> Any:
     """Bitwarden answers in camelCase, older servers in PascalCase: keys lower-cased, all the way down."""
     if isinstance(data, dict):
