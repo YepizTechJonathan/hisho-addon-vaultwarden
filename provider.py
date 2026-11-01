@@ -378,7 +378,7 @@ def save_login(login: dict[str, Any], ctx: Any) -> dict[str, Any]:
             fields[label] = str(login[k])
     item = {"name": name, "username": str(login.get("username") or ""), "password": password,
             "uris": [str(login["url"])] if login.get("url") else [], "notes": str(login.get("note") or ""),
-            "fields": fields}
+            "fields": fields, "totp": str(login.get("totp") or "")}   # the vault fills two-step codes from it
     org, col = str(entry["org_id"]), str(entry["collection_id"])
 
     def go(v: Any) -> tuple[str, bool]:

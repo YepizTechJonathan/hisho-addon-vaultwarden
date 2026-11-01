@@ -516,7 +516,8 @@ class Vault:
                   "favorite": False, "reprompt": 0,
                   "name": enc_str(item["name"], key), "notes": enc_str(item.get("notes"), key),
                   "login": {"username": enc_str(item.get("username"), key),
-                            "password": enc_str(item.get("password"), key), "uris": uris or None, "totp": None},
+                            "password": enc_str(item.get("password"), key), "uris": uris or None,
+                            "totp": enc_str(item["totp"], key) if item.get("totp") else None},
                   "fields": [{"name": enc_str(k, key), "value": enc_str(v, key), "type": 0}
                              for k, v in (item.get("fields") or {}).items()],
                   "collectionIds": [collection_id]}

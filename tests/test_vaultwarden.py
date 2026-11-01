@@ -381,3 +381,16 @@ def test_update_and_backup_run_hishos_install_script(addon, prov, tmp_path):
     prov.act(addons.entries(addon), ctx, "main", "update", "backup")
     assert ctx.ran[-1][2] == "--backup"
     assert Path(ctx.ran[-1][1]).is_file()     # Hisho's installer is really there
+
+
+
+def test_a_login_with_two_step_sign_in_gets_its_authenticator_key(addon, prov, tmp_path):
+    """Hisho turns 2FA on for the Forgejo it installs: the vault keeps the authenticator key so it fills the codes."""
+    from hisho import addons
+    installed(addon, tmp_path)
+    ctx = Ctx(addon)
+    prov.setup("main", addons.entries(addon)["main"], ctx)
+    out = prov.save_login({"name": "login", "key": "HISHO_FORGEJO_SOUKO_LOGIN", "service": "forgejo", "machine": "souko",
+                           "title": "Forgejo", "username": "owner", "password": "f1", "note": "What: test",
+                           "totp": "otpauth://totp/Forgejo:owner?secret=ABC&issuer=Forgejo"}, ctx)
+    assert prov.server.items[out["id"]]["totp"].startswith("otpauth://totp/Forgejo")
