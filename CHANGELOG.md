@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Logins with two-step sign-in keep their authenticator key, so the vault fills the codes.
+
 ## 0.1.2
 
 - `forget_login`: when Hisho removes an add-on, its login item goes to the vault's trash (found by its Hisho key; restorable there).
