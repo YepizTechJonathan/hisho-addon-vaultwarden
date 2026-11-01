@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- `forget_login`: when Hisho removes an add-on, its login item goes to the vault's trash (found by its Hisho key; restorable there).
+
 ## 0.1.1
 
 - Logins are matched by Hisho's stable key, so each service keeps its own item ("Semaphore (souko)", "Infisical encryption key (souko)").
